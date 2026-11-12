@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import "./kahoot.css";
 
 export const metadata: Metadata = {
   title: "Kalimera! — De Griekenland & Kreta Quiz",
