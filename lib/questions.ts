@@ -5,7 +5,7 @@ export const rounds = [
  {title:'Kreta of ergens anders?', icon:'🏝️', desc:'Eén foto of aanwijzing. Twee mogelijkheden.'},
  {title:'Traditie of verzonnen?', icon:'🧿', desc:'Bijzondere gebruiken. Maar is het ook echt waar?'},
  {title:'Wat zegt die Griek?', icon:'💬', desc:'Een klein taallesje voor de volgende vakantie.'},
- {title:'De grote vakantiefinale', icon:'⚡', desc:'Film, geografie en schatvragen. Alles kan nog!'},
+ {title:'De grote vakantiefinale', icon:'⚡', desc:'Film, geografie en verrassende weetjes. Alles kan nog!'},
 ];
 export type Question = {text:string; options?:string[]; correct:number; explanation:string; image?:string; credit?:string; zoom?:boolean; numeric?:boolean; unit?:string; speak?:string};
 const photo=(id:string)=>`https://images.unsplash.com/${id}?auto=format&fit=crop&w=1200&q=85`;
@@ -33,13 +33,13 @@ const baseQuestions:Question[] = [
  {text:'De ober zegt: Kaliméra! Wat betekent dat?',options:['Goedemorgen','Eet smakelijk','Tot morgen','Welterusten'],correct:0,explanation:'Kaliméra betekent goedemorgen of goedendag.',speak:'Καλημέρα'},
  {text:'Je zegt Efcharistó tegen de barman. Wat zeg je?',options:['Proost','Nog eentje','Dank je wel','De rekening graag'],correct:2,explanation:'Efcharistó betekent dank je wel.',speak:'Ευχαριστώ'},
  {text:'Een Griek antwoordt Ne op je vraag. Wat betekent dat?',options:['Misschien','Ja','Nee','Ik weet het niet'],correct:1,explanation:'Ne betekent ja. Het Griekse woord voor nee is óchi.',speak:'Ναι'},
- {text:'Je hoort Yámas! terwijl iedereen zijn glas omhooghoudt. Wat betekent dat?',options:['Welkom','Eet smakelijk','Tot ziens','Proost'],correct:3,explanation:'Yámas betekent op onze gezondheid: proost!',speak:'Γεια μας'},
- {text:'Op een bordje staat Éxodos. Waar wijst het naartoe?',options:['Het strand','De uitgang','Het toilet','De ingang'],correct:1,explanation:'Éxodos betekent uitgang.',speak:'Έξοδος'},
+ {text:'Wat betekent het Griekse woord Yámas?',options:['Welkom','Eet smakelijk','Tot ziens','Proost'],correct:3,explanation:'Yámas betekent op onze gezondheid: proost!',speak:'Γεια μας'},
+ {text:'Wat betekent het Griekse woord Éxodos?',options:['Het strand','De uitgang','Het toilet','De ingang'],correct:1,explanation:'Éxodos betekent uitgang.',speak:'Έξοδος'},
  {text:'Welke musicalfilm speelt zich af op het fictieve Griekse eiland Kalokairi?',options:['Grease','Mamma Mia!','Dirty Dancing','La La Land'],correct:1,explanation:'Mamma Mia! speelt zich af op Kalokairi. Veel scènes zijn opgenomen op Skopelos.'},
- {text:'Schatten zonder de vlag te zien: hoeveel horizontale strepen heeft de Griekse vlag?',numeric:true,unit:'strepen',correct:9,explanation:'Negen strepen: vijf blauwe en vier witte.'},
+ {text:'Hoeveel horizontale strepen heeft de Griekse vlag?',options:['7 strepen','8 strepen','9 strepen','10 strepen'],correct:2,explanation:'Negen strepen: vijf blauwe en vier witte.'},
  {text:'Je ligt aan de zuidkust van Kreta en kijkt recht naar het zuiden. Welk land ligt aan de overkant van de zee?',options:['Italië','Turkije','Libië','Kroatië'],correct:2,explanation:'Aan de overkant van de Libische Zee ligt Libië.'},
  {text:'Je wilt Kreta van west naar oost oversteken. Hoe lang is het eiland ongeveer hemelsbreed?',options:['80 kilometer','150 kilometer','260 kilometer','420 kilometer'],correct:2,explanation:'Kreta is ongeveer 260 kilometer lang. Over de weg leg je meer afstand af.'},
- {text:'De laatste schatvraag: hoe hoog is de hoogste bergtop van Kreta, de Psiloritis?',numeric:true,unit:'meter',correct:2456,explanation:'De hoogste top van de Psiloritis is 2.456 meter hoog.'},
+ {text:'Hoe hoog is de hoogste bergtop van Kreta, de Psiloritis?',options:['1.456 meter','1.956 meter','2.456 meter','2.956 meter'],correct:2,explanation:'De hoogste top van de Psiloritis is 2.456 meter hoog.'},
 ];
 const imageByQuestion=media as Record<string,{image:string;credit:string}>;
 export const questions:Question[]=baseQuestions.map((q,idx)=>({...q,...imageByQuestion[String(idx)]}));

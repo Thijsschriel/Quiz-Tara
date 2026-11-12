@@ -13,9 +13,9 @@ assert.equal(questions[12].text,'');assert.equal(questions[25].options[1],'Mamma
 assert.equal(scoreAnswer(questions[0],'1',0,30),1000);
 assert.equal(scoreAnswer(questions[0],'1',30000,30),500);
 assert.equal(scoreAnswer(questions[0],'0',0,30),0);
-assert.equal(scoreAnswer(questions[26],'8',0,30,[8,10,12]),1000);
-assert.equal(scoreAnswer(questions[26],'10',0,30,[8,10,12]),1000);
-assert.equal(scoreAnswer(questions[26],'12',0,30,[8,10,12]),800);
+assert.ok(questions.every(q=>!q.numeric));
+assert.equal(questions[26].options[questions[26].correct],'9 strepen');
+assert.equal(questions[29].options[questions[29].correct],'2.456 meter');
 const sql=new DatabaseSync(':memory:');
 sql.exec('CREATE TABLE games(code TEXT PRIMARY KEY,host TEXT,stage TEXT,idx INTEGER,started INTEGER,duration INTEGER,created INTEGER); CREATE TABLE players(id TEXT PRIMARY KEY,code TEXT,name TEXT,created INTEGER); CREATE TABLE answers(player TEXT,code TEXT,idx INTEGER,value TEXT,elapsed INTEGER,PRIMARY KEY(player,code,idx));');
 const db={prepare(query){let args=[];return{bind(...v){args=v;return this;},async first(){return sql.prepare(query).get(...args)||null;},async all(){return{results:sql.prepare(query).all(...args)};},async run(){return{meta:sql.prepare(query).run(...args)};}};}};
@@ -53,4 +53,4 @@ const second=(await post({action:'create',duration:15})).data;
 const late=(await post({action:'join',code:second.code,name:'Te laat'})).data;
 sql.prepare("UPDATE games SET stage='question',started=? WHERE code=?").run(Date.now()-16000,second.code);
 assert.equal((await post({action:'answer',code:second.code,idx:0,value:1},late.token)).status,400);
-console.log('PASS: 30-question multiplayer game, 6 rounds, scoring, numerical ties, duplicate answers, access controls, hidden answers and server timer.');
+console.log('PASS: 30-question multiplayer game, 6 rounds, scoring, multiple-choice finale, duplicate answers, access controls, hidden answers and server timer.');
