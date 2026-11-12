@@ -3,7 +3,7 @@ import "./globals.css";
 import "./kahoot.css";
 
 export const metadata: Metadata = {
-  title: "Griekenland & Kreta Quiz — gemaakt door Tara",
+  title: "Bonte avond — de quiz van Tara",
   description: "De quiz van Tara. Zes rondes, dertig vragen en één winnaar. Speel samen op je eigen telefoon.",
   authors: [{ name: "Tara" }],
   icons: {
