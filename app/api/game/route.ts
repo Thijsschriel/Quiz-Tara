@@ -10,7 +10,7 @@ async function game(code:string){return db().prepare('SELECT * FROM games WHERE 
 async function state(code:string,auth:string){
  const g=await game(code);if(!g)return fail('Deze spelcode bestaat niet of is verlopen.',404);
  const host=g.host===auth;
- const me=host?null:await db().prepare('SELECT * FROM players WHERE id=? AND code=?').bind(auth,code).first<any>();
+ const me=await db().prepare('SELECT * FROM players WHERE id=? AND code=?').bind(auth,code).first<any>();
  if(!host&&!me)return fail('Vul je naam in om mee te doen.',401);
  const ps=(await db().prepare('SELECT id,name,created FROM players WHERE code=? ORDER BY created').bind(code).all<any>()).results;
  const aa=(await db().prepare('SELECT player,idx,value,elapsed FROM answers WHERE code=?').bind(code).all<any>()).results;
@@ -38,11 +38,16 @@ export async function POST(req:Request){
  try{
  const b=await req.json() as any;const auth=req.headers.get('x-game-token')||'';
  if(b.action==='create'){
+  const name=String(b.name||'').trim().replace(/\s+/g,' ').slice(0,24);if(!name)return fail('Vul je naam als quizmaster in.');
   const host=token(); const duration=[15,20,30,45,60].includes(b.duration)?b.duration:30;
   for(let i=0;i<5;i++){
    const code=String(100000+crypto.getRandomValues(new Uint32Array(1))[0]%900000);
    const r=await db().prepare("INSERT OR IGNORE INTO games (code,host,stage,idx,started,duration,created) VALUES (?,?,'lobby',0,0,?,?)").bind(code,host,duration,Date.now()).run();
-   if(r.meta.changes)return json({code,token:host,host:true});
+   if(r.meta.changes){
+    try{await db().prepare('INSERT INTO players (id,code,name,created) VALUES (?,?,?,?)').bind(host,code,name,Date.now()).run();}
+    catch(error){await db().prepare('DELETE FROM games WHERE code=? AND host=?').bind(code,host).run();throw error;}
+    return json({code,token:host,host:true});
+   }
   }return fail('Maak nogmaals een spel aan.',503);
  }
  const code=String(b.code||'');const g=await game(code);if(!g)return fail('Deze spelcode bestaat niet of is verlopen.',404);
@@ -69,6 +74,10 @@ export async function POST(req:Request){
  if(g.host!==auth)return fail('Alleen de quizmaster kan dit doen.',403);
  if(b.action==='advance'){
   if(b.idx!==g.idx||b.stage!==g.stage)return fail('Het spel is al verder.');
+  if(g.stage==='question'&&Date.now()<g.started+g.duration*1000){
+   const counts=await db().prepare('SELECT (SELECT COUNT(*) FROM players WHERE code=?) AS players, (SELECT COUNT(*) FROM answers WHERE code=? AND idx=?) AS answered').bind(code,code,g.idx).first<any>();
+   if(counts.answered<counts.players)return fail('Wacht tot iedereen heeft geantwoord of de tijd voorbij is.');
+  }
   let stage=g.stage,idx=g.idx;
   if(stage==='lobby'){stage='round';idx=0;}
   else if(stage==='round')stage='question';
