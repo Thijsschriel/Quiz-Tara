@@ -1,0 +1,13 @@
+{
+  "version": "7",
+  "dialect": "sqlite",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "6",
+      "when": 1794511731305,
+      "tag": "0000_stiff_tomorrow_man",
+      "breakpoints": true
+    }
+  ]
+}
