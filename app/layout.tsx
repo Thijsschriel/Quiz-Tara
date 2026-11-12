@@ -3,8 +3,9 @@ import "./globals.css";
 import "./kahoot.css";
 
 export const metadata: Metadata = {
-  title: "Kalimera! — De Griekenland & Kreta Quiz",
-  description: "Zes rondes, dertig vragen en één winnaar. Speel samen op je eigen telefoon.",
+  title: "Griekenland & Kreta Quiz — gemaakt door Tara",
+  description: "De quiz van Tara. Zes rondes, dertig vragen en één winnaar. Speel samen op je eigen telefoon.",
+  authors: [{ name: "Tara" }],
   icons: {
     icon: "/favicon.svg",
     shortcut: "/favicon.svg",
