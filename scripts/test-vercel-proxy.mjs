@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import {Readable} from 'node:stream';
-import handler from '../api/quiz-proxy.mjs';
+const {default:handler}=await import(process.env.QUIZ_TEST_BUILT==='1'?'../.vercel/output/functions/quiz-proxy.func/index.mjs':'../api/quiz-proxy.mjs');
 
 async function call(path,method='GET',body,token){
  const req=Readable.from(body?[JSON.stringify(body)]:[]);

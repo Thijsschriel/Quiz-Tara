@@ -9,7 +9,7 @@ export default async function handler(req, res) {
  }
  const incoming=new URL(req.url,'https://quiz.invalid');
  const target=new URL(ORIGIN);
- target.pathname=incoming.searchParams.get('quiz_path')||'/';
+ target.pathname=incoming.searchParams.get('quiz_path')||(['/api/quiz-proxy','/quiz-proxy'].includes(incoming.pathname)?'/':incoming.pathname);
  for(const [key,value] of incoming.searchParams)if(key!=='quiz_path')target.searchParams.append(key,value);
  const headers=new Headers();
  for(const key of FORWARD_HEADERS){const value=req.headers[key];if(value)headers.set(key,Array.isArray(value)?value.join(','):value);}

@@ -2,10 +2,14 @@
 
 The repository root now also contains `vercel.json` for automatic GitHub-linked
 Vercel deployments. Keep the Vercel project's Root Directory at the repository
-root. Its config skips the Cloudflare build and serves this proxy instead.
+root. Its config runs `node deploy/vercel/build.mjs`. The build produces the
+official Vercel Build Output API v3 artifact in `.vercel/output`, including
+the Node.js function, its runtime config and the catch-all route. It does
+not require installing dependencies or building the Cloudflare app.
 
 Alternatively deploy this directory as a Vercel project named `taraquiz` (subject to availability).
-Use the Other framework preset. No install or build command is required.
+Use the Other framework preset. The checked-in config provides the build
+command. No dependency installation is required.
 
 The Node.js function in `api/quiz-proxy.mjs` fetches the origin with a clean
 Host and an explicit allowlist of request headers. It forwards game tokens
@@ -21,6 +25,11 @@ After publication, verify the homepage and a 13-player game through the Vercel
 URL. From the repository root, run the existing multiplayer smoke test with
 QUIZ_TEST_ORIGIN set to the deployed origin. The test creates a disposable
 game that expires after 24 hours.
+
+`/deployment-check.json` identifies the explicit v3 build output. If this file
+also returns 404, inspect the Vercel project Root Directory and Build Logs:
+the build must print "Bonte avond: generated Vercel v3 output". A successful
+deployment status alone is not proof that the route works.
 
 CLI alternative after signing in to Vercel:
 
