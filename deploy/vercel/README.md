@@ -7,6 +7,11 @@ root. Its config skips the Cloudflare build and serves this proxy instead.
 Alternatively deploy this directory as a Vercel project named `taraquiz` (subject to availability).
 Use the Other framework preset. No install or build command is required.
 
+The Node.js function in `api/quiz-proxy.mjs` fetches the origin with a clean
+Host and an explicit allowlist of request headers. It forwards game tokens
+and query parameters but never Vercel's forwarded host headers. The root
+`api/quiz-proxy.mjs` reexports the same implementation for GitHub deployment.
+
 This is a reverse proxy, not a redirect. Players stay on the Vercel address,
 including copied lobby links. The existing published Site remains the origin
 for the app, images, API and shared D1 game database and must remain public

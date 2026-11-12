@@ -7,7 +7,7 @@
   "rewrites": [
     {
       "source": "/:path*",
-      "destination": "https://tara-griekenland-kreta-quiz.thijs-schriel.chatgpt.site/:path*"
+      "destination": "/api/quiz-proxy?quiz_path=/:path*"
     }
   ],
   "headers": [
