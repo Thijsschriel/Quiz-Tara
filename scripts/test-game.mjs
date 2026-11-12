@@ -1,11 +1,14 @@
 import assert from 'node:assert/strict';
-import {readFileSync} from 'node:fs';
+import {readFileSync,existsSync,statSync} from 'node:fs';
 import {stripTypeScriptTypes} from 'node:module';
 import {DatabaseSync} from 'node:sqlite';
 const load=async code=>import('data:text/javascript;base64,'+Buffer.from(stripTypeScriptTypes(code)).toString('base64'));
-const {questions,rounds}=await load(readFileSync('lib/questions.ts','utf8'));
+const media=JSON.parse(readFileSync('lib/media.json','utf8'));
+const qsrc=readFileSync('lib/questions.ts','utf8').replace("import media from './media.json';",'const media='+JSON.stringify(media)+';');
+const {questions,rounds}=await load(qsrc);
 const {scoreAnswer}=await load(readFileSync('lib/scoring.ts','utf8'));
 assert.equal(questions.length,30);assert.equal(rounds.length,6);
+for(const q of questions){assert.ok(q.image.startsWith('/quiz/'));assert.ok(existsSync('public'+q.image));assert.ok(statSync('public'+q.image).size>1000);assert.ok(!q.image.startsWith('http'));}
 assert.equal(questions[12].text,'');assert.equal(questions[25].options[1],'Mamma Mia!');
 assert.equal(scoreAnswer(questions[0],'1',0,30),1000);
 assert.equal(scoreAnswer(questions[0],'1',30000,30),500);

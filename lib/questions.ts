@@ -1,3 +1,4 @@
+import media from './media.json';
 export const rounds = [
  {title:'Waar zijn we beland?', icon:'📸', desc:'Herken de mooiste plekken. Kijk goed naar de foto.'},
  {title:'Wat ligt er op je bord?', icon:'🍋', desc:'Van de taverna naar je telefoon. Wat bestel jij?'},
@@ -8,7 +9,7 @@ export const rounds = [
 ];
 export type Question = {text:string; options?:string[]; correct:number; explanation:string; image?:string; credit?:string; zoom?:boolean; numeric?:boolean; unit?:string; speak?:string};
 const photo=(id:string)=>`https://images.unsplash.com/${id}?auto=format&fit=crop&w=1200&q=85`;
-export const questions:Question[] = [
+const baseQuestions:Question[] = [
  {text:'Witte huisjes, blauwe koepels en uitzicht op zee. Welk eiland zie je?', options:['Rhodos','Santorini','Kreta','Kos'],correct:1,explanation:'Deze beroemde blauwe koepels staan in Oia op Santorini.', image:photo('photo-1596933144889-c15043a9ddde'),credit:'Unsplash · https://unsplash.com/photos/xEG9zTZ8kog',zoom:true},
  {text:'Een strand met roze zand aan de waterkant. Welk strand op Kreta is dit?',options:['Elafonissi','Vai','Matala','Preveli'],correct:0,explanation:'Elafonissi staat bekend om het roze zand langs de waterkant.',image:'https://luxuryescapes.com/inspiration/wp-content/uploads/2023/02/shutterstock_elafonissi.jpg',credit:'Luxury Escapes / Shutterstock · https://luxuryescapes.com/inspiration/why-crete-is-a-must-on-your-greek-island-itinerary/'},
  {text:'Je ziet een detail van het Parthenon. In welke stad staan we?',options:['Thessaloniki','Heraklion','Athene','Chania'],correct:2,explanation:'Het Parthenon staat op de Akropolis in Athene.',image:photo('photo-1584721284569-c5f83d57ec78'),credit:'Unsplash · https://unsplash.com/s/photos/acropolis',zoom:true},
@@ -40,3 +41,5 @@ export const questions:Question[] = [
  {text:'Je wilt Kreta van west naar oost oversteken. Hoe lang is het eiland ongeveer hemelsbreed?',options:['80 kilometer','150 kilometer','260 kilometer','420 kilometer'],correct:2,explanation:'Kreta is ongeveer 260 kilometer lang. Over de weg leg je meer afstand af.'},
  {text:'De laatste schatvraag: hoe hoog is de hoogste bergtop van Kreta, de Psiloritis?',numeric:true,unit:'meter',correct:2456,explanation:'De hoogste top van de Psiloritis is 2.456 meter hoog.'},
 ];
+const imageByQuestion=media as Record<string,{image:string;credit:string}>;
+export const questions:Question[]=baseQuestions.map((q,idx)=>({...q,...imageByQuestion[String(idx)]}));
