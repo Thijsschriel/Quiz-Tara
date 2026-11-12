@@ -1,6 +1,7 @@
 import { env } from 'cloudflare:workers';
 import { questions, rounds } from '../../../lib/questions';
 import { scoreAnswer } from '../../../lib/scoring';
+import { nextAutomaticStage, REVEAL_MS, ROUND_MS } from '../../../lib/progression';
 export const dynamic='force-dynamic';
 const json=(v:unknown,status=200)=>Response.json(v,{status,headers:{'Cache-Control':'no-store'}});
 const token=()=>crypto.randomUUID();
@@ -8,10 +9,16 @@ const fail=(message:string,status=400)=>json({error:message},status);
 function db(){if(!env.DB)throw new Error('De spelopslag is nog niet beschikbaar.');return env.DB;}
 async function game(code:string){return db().prepare('SELECT * FROM games WHERE code=? AND created>?').bind(code,Date.now()-86400000).first<any>();}
 async function state(code:string,auth:string){
- const g=await game(code);if(!g)return fail('Deze spelcode bestaat niet of is verlopen.',404);
+ let g=await game(code);if(!g)return fail('Deze spelcode bestaat niet of is verlopen.',404);
  const host=g.host===auth;
  const me=await db().prepare('SELECT * FROM players WHERE id=? AND code=?').bind(auth,code).first<any>();
  if(!host&&!me)return fail('Vul je naam in om mee te doen.',401);
+ const counts=await db().prepare('SELECT (SELECT COUNT(*) FROM players WHERE code=?) AS players, (SELECT COUNT(*) FROM answers WHERE code=? AND idx=?) AS answered').bind(code,code,g.idx).first<any>();
+ const next=nextAutomaticStage(g,counts.players,counts.answered,Date.now(),questions.length);
+ if(next){
+  await db().prepare('UPDATE games SET stage=?,idx=?,started=? WHERE code=? AND stage=? AND idx=? AND started=?').bind(next.stage,next.idx,next.started,code,g.stage,g.idx,g.started).run();
+  g=await game(code);
+ }
  const ps=(await db().prepare('SELECT id,name,created FROM players WHERE code=? ORDER BY created').bind(code).all<any>()).results;
  const aa=(await db().prepare('SELECT player,idx,value,elapsed FROM answers WHERE code=?').bind(code).all<any>()).results;
  const scores=new Map<string,number>(ps.map((p:any)=>[p.id,0]));
@@ -31,7 +38,7 @@ async function state(code:string,auth:string){
   const {correct,explanation,credit,...publicQ}=current;
   q={...publicQ,...(revealed?{correct,explanation,credit}:{} )};
  }
- return json({code:g.code,stage:g.stage,idx:g.idx,total:questions.length,duration:g.duration,started:g.started,serverNow:Date.now(),host,me:me?{id:me.id,name:me.name,score:scores.get(me.id)||0}:null,players:rank,answered:currentAnswers.length,own:own?{value:own.value,...(revealed?{points:scoreAnswer(current,own.value,own.elapsed,g.duration,currentAnswers.map((a:any)=>Number(a.value)))}:{})}:null,question:q,round:rounds[Math.floor(Math.max(0,g.idx)/5)],roundNumber:Math.floor(Math.max(0,g.idx)/5)+1,distribution:revealed&&current?.options?current.options.map((_,i)=>currentAnswers.filter((a:any)=>Number(a.value)===i).length):null});
+ return json({code:g.code,stage:g.stage,idx:g.idx,total:questions.length,duration:g.duration,started:g.started,serverNow:Date.now(),autoAdvanceAt:g.stage==='reveal'?g.started+REVEAL_MS:g.stage==='round'?g.started+ROUND_MS:null,host,me:me?{id:me.id,name:me.name,score:scores.get(me.id)||0}:null,players:rank,answered:currentAnswers.length,own:own?{value:own.value,...(revealed?{points:scoreAnswer(current,own.value,own.elapsed,g.duration,currentAnswers.map((a:any)=>Number(a.value)))}:{})}:null,question:q,round:rounds[Math.floor(Math.max(0,g.idx)/5)],roundNumber:Math.floor(Math.max(0,g.idx)/5)+1,distribution:revealed&&current?.options?current.options.map((_,i)=>currentAnswers.filter((a:any)=>Number(a.value)===i).length):null});
 }
 export async function GET(req:Request){try{const u=new URL(req.url);return await state(u.searchParams.get('code')||'',req.headers.get('x-game-token')||'');}catch{return fail('Verbinding met het spel mislukt. Probeer opnieuw.',503);}}
 export async function POST(req:Request){
@@ -73,18 +80,9 @@ export async function POST(req:Request){
  }
  if(g.host!==auth)return fail('Alleen de quizmaster kan dit doen.',403);
  if(b.action==='advance'){
+  if(g.stage!=='lobby')return fail('Het spel gaat automatisch verder.');
   if(b.idx!==g.idx||b.stage!==g.stage)return fail('Het spel is al verder.');
-  if(g.stage==='question'&&Date.now()<g.started+g.duration*1000){
-   const counts=await db().prepare('SELECT (SELECT COUNT(*) FROM players WHERE code=?) AS players, (SELECT COUNT(*) FROM answers WHERE code=? AND idx=?) AS answered').bind(code,code,g.idx).first<any>();
-   if(counts.answered<counts.players)return fail('Wacht tot iedereen heeft geantwoord of de tijd voorbij is.');
-  }
-  let stage=g.stage,idx=g.idx;
-  if(stage==='lobby'){stage='round';idx=0;}
-  else if(stage==='round')stage='question';
-  else if(stage==='question')stage='reveal';
-  else if(stage==='reveal'){if(idx===questions.length-1)stage='finished';else{idx++;stage=idx%5===0?'round':'question';}}
-  else return fail('Dit spel is afgelopen. Maak een nieuw spel.');
-  await db().prepare('UPDATE games SET stage=?,idx=?,started=? WHERE code=? AND stage=? AND idx=? AND host=?').bind(stage,idx,stage==='question'?Date.now():g.started,code,g.stage,g.idx,auth).run();
+  await db().prepare("UPDATE games SET stage='round',idx=0,started=? WHERE code=? AND stage='lobby' AND host=?").bind(Date.now(),code,auth).run();
   return state(code,auth);
  }
  return fail('Onbekende actie.');
